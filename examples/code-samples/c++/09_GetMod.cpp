@@ -22,7 +22,7 @@ int main(void)
   std::cout << "Enter the mod id: " << std::endl;
   std::cin >> mod_id;
 
-  std::cout << "Getting mods..." << std::endl;
+  std::cout << "Getting mod..." << std::endl;
 
   modio_instance.getMod(mod_id, [&](const modio::Response &response, const modio::Mod &mod) {
     std::cout << "On mod get response: " << response.code << std::endl;
@@ -35,6 +35,7 @@ int main(void)
       for (auto &tag : mod.tags)
         std::cout << "* " << tag.name << std::endl;
       std::cout << "Description: " << mod.description << std::endl;
+      std::cout << "Description (plain text): " << mod.description_plaintext << std::endl;
       std::cout << "Metadata blob: " << mod.metadata_blob << std::endl;
       std::cout << "Visible: " << mod.visible << std::endl;
       std::cout << "Maturity option: " << mod.maturity_option << std::endl;

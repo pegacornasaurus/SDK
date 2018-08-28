@@ -26,9 +26,9 @@ int main(void)
   std::cout << "Getting mods..." << std::endl;
 
   // Now we finished setting up the filters we are ready to request the mods
-  modio_instance.getMods(filter, [&](const modio::Response &response, const std::vector<modio::Mod> &mods) {
+  modio_instance.getAllMods(filter, [&](const modio::Response &response, const std::vector<modio::Mod> &mods) {
     std::cout << "On mod get response: " << response.code << std::endl;
-    if (false && response.code == 200)
+    if (response.code == 200)
     {
       std::cout << "Listing mods" << std::endl;
       std::cout << "============" << std::endl;
