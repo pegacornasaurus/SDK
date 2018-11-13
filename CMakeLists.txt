@@ -3,15 +3,23 @@ project(modio)
 set(CMAKE_BUILD_TYPE Release)
 set (CMAKE_CXX_STANDARD 11)
 
-# Use -DMODIO_STATICLIB instead of -DMODIO_DYNAMICLIB when building statically
-add_definitions(-DMODIO_DYNAMICLIB -DCURL_STATICLIB)
+# set the mode flag as static to compile statically, for example:
+# cmake -D mode=static .
 
 include_directories(include additional_dependencies)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-# Use STATIC instead of SHARED to build when building statically
-add_library(modio SHARED ${SOURCES})
+if( mode AND mode STREQUAL "static" )
+  message("Building mod.io SDK statically")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+  add_definitions(-DMODIO_STATICLIB -DCURL_STATICLIB)
+  add_library(modio STATIC ${SOURCES})
+else()
+  message("Building mod.io SDK dynamically")
+  add_definitions(-DMODIO_DYNAMICLIB -DCURL_STATICLIB)
+  add_library(modio SHARED ${SOURCES})
+endif()
 
 IF (APPLE)
   find_package(ZLIB REQUIRED)
@@ -40,4 +48,15 @@ IF (MSVC)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
     target_link_libraries(modio ws2_32.lib wldap32.lib advapi32.lib kernel32.lib comdlg32.lib crypt32.lib normaliz.lib ${CMAKE_SOURCE_DIR}/lib/MSVC/x86/libcurl_a.lib  ${CMAKE_SOURCE_DIR}/lib/MSVC/x86/zlib.lib )
   endif()
+ENDIF()
+
+IF( test AND test STREQUAL "on" )
+  message("Testing enabled")
+  file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp)
+  add_subdirectory(ext/gtest-1.8.0)
+  enable_testing()
+  include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+  add_executable(runUnitTests ${TEST_SRC_FILES})
+  target_link_libraries(runUnitTests gtest gtest_main modio)
+  add_test(UnitTests runUnitTests)
 ENDIF()
