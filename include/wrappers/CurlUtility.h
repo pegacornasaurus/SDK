@@ -119,6 +119,11 @@ void setVerifies(CURL *curl);
 void setJsonResponseWrite(CURL *curl);
 std::string mapDataToUrlString(std::map<std::string, std::string> data);
 std::string multimapDataToUrlString(std::multimap<std::string, std::string> data);
+
+void setupCurrentModDownload(CurrentModDownload *current_mod_download, u32 mod_id);
+void handleOnGetDownloadModError(ModioMod* modio_mod);
+std::string dataURLEncode(std::string data);
+
 } // namespace curlwrapper
 } // namespace modio
 

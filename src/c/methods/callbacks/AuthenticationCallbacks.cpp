@@ -27,11 +27,7 @@ void modioOnEmailExchanged(u32 call_number, u32 response_code, nlohmann::json re
     std::string access_token = "";
     if (modio::hasKey(response_json, "access_token"))
     {
-      access_token = response_json["access_token"];
-      modio::ACCESS_TOKEN = access_token;
-      nlohmann::json token_json;
-      token_json["access_token"] = access_token;
-      modio::writeJson(modio::getModIODirectory() + "authentication.json", token_json);
+      modio::updateAuthenticatedUser(response_json["access_token"]);
     }
     else
     {

@@ -14,16 +14,21 @@ void modioOnGetAuthenticatedUser(u32 call_number, u32 response_code, nlohmann::j
   modioInitResponse(&response, response_json);
   response.code = response_code;
 
-  ModioUser user;
-  modioInitUser(&user, response_json);
+  modioInitUser(&modio::current_user, response_json);
 
-  get_authenticated_user_callbacks[call_number]->callback(get_authenticated_user_callbacks[call_number]->object, response, user);
+  if(response_code >= 200 && response_code < 300)
+  {
+    nlohmann::json authentication_json = modio::openJson(modio::getModIODirectory() + "authentication.json");
+    authentication_json["user"] = response_json;
+    modio::writeJson(modio::getModIODirectory() + "authentication.json", authentication_json);
+  }
+
+  get_authenticated_user_callbacks[call_number]->callback(get_authenticated_user_callbacks[call_number]->object, response, modio::current_user);
 
   delete get_authenticated_user_callbacks[call_number];
   get_authenticated_user_callbacks.erase(call_number);
 
   modioFreeResponse(&response);
-  modioFreeUser(&user);
 }
 
 void modioOnGetUserSubscriptions(u32 call_number, u32 response_code, nlohmann::json response_json)
@@ -70,7 +75,7 @@ void modioOnGetUserEvents(u32 call_number, u32 response_code, nlohmann::json res
   ModioResponse response;
   modioInitResponse(&response, response_json);
   response.code = response_code;
-  ModioEvent *events_array = NULL;
+  ModioUserEvent *events_array = NULL;
   u32 events_array_size = 0;
 
   if (response.code == 200)
@@ -78,10 +83,10 @@ void modioOnGetUserEvents(u32 call_number, u32 response_code, nlohmann::json res
     if (modio::hasKey(response_json, "data"))
     {
       events_array_size = (u32)response_json["data"].size();
-      events_array = new ModioEvent[events_array_size];
+      events_array = new ModioUserEvent[events_array_size];
 
       for (u32 i = 0; i < events_array_size; i++)
-        modioInitEvent(&(events_array[i]), response_json["data"][i]);
+        modioInitUserEvent(&(events_array[i]), response_json["data"][i]);
     }
     else
     {
@@ -97,7 +102,7 @@ void modioOnGetUserEvents(u32 call_number, u32 response_code, nlohmann::json res
 
   modioFreeResponse(&response);
   for (u32 i = 0; i < events_array_size; i++)
-    modioFreeEvent(&(events_array[i]));
+    modioFreeUserEvent(&(events_array[i]));
   if (events_array)
     delete[] events_array;
 }

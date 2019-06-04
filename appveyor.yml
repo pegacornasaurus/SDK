@@ -3,15 +3,17 @@ image:
 clone_folder: c:\projects\source
 build_script:
 - cmd: >-
-    mkdir build
+    .\appveyor_build_config.bat
+artifacts:
+  - path: Windows.zip
+    name: Windows
 
-    cd build
-    
-    cmake c:\projects\source -G "Visual Studio 15"
-    
-    cmake --build . --config "Debug"
-
-test_script:
-- cmd: ctest -C Debug
-
-
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: "mPa2q6gkctTgPbec+bAGiPew2J7ehiDHalv4DW9H+RzIxgKZGr/ELPc9sLTVGlIB"
+  artifact: Windows
+  draft: false
+  prerelease: false
+  on:
+    APPVEYOR_REPO_TAG: true

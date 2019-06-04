@@ -19,6 +19,10 @@
 #define MODIO_WINDOWS_DETECTED
 #endif
 
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MAC) || defined(PLATFORM_WINDOWS)
+#  define MODIO_UE4_DETECTED
+#endif
+
 #include <iostream>
 #include <vector>
 #include <string.h>
@@ -37,9 +41,13 @@
 #endif
 
 #ifdef MODIO_WINDOWS_DETECTED
-#include <windows.h>
-#include <strsafe.h>
-#include "dependencies/dirent/dirent.h"
+#  ifdef MODIO_UE4_DETECTED 
+#    include <Windows/MinWindows.h>
+#  else
+#    include <windows.h>
+#  endif
+#  include <strsafe.h>
+#  include "dependencies/dirent/dirent.h"
 //#include "vld.h"
 #endif
 
@@ -89,6 +97,7 @@ double getFileSize(const std::string &file_path);
 void createPath(const std::string &strPathAndFile);
 std::vector<std::string> getHeaders();
 std::vector<std::string> getUrlEncodedHeaders();
+std::string base64Encode(unsigned char const* bytes_to_encode, unsigned int in_len);
 } // namespace modio
 
 #endif

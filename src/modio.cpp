@@ -51,23 +51,33 @@ void loadAuthenticationFile()
   }
 }
 
-void modioInit(u32 environment, u32 game_id, char *api_key, char *root_path)
+void modioInit(u32 environment, u32 game_id, char const *api_key, char const *root_path)
 {
+  if (root_path)
+    modio::ROOT_PATH = root_path;
+  
   modio::createDirectory(modio::getModIODirectory());
   modio::createDirectory(modio::getModIODirectory() + "mods/");
   modio::createDirectory(modio::getModIODirectory() + "cache/");
   modio::createDirectory(modio::getModIODirectory() + "tmp/");
 
   modio::clearLog();
+
   modio::writeLogLine("Initializing SDK", MODIO_DEBUGLEVEL_LOG);
-  modio::writeLogLine("v0.10.1", MODIO_DEBUGLEVEL_LOG);
+  if (root_path)
+  {
+    modio::writeLogLine(".modio/ directory created at " + std::string(root_path), MODIO_DEBUGLEVEL_LOG);
+  }else
+  {
+    modio::writeLogLine(".modio/ directory created at current workspace.", MODIO_DEBUGLEVEL_LOG);
+  }
+  
+  modio::writeLogLine("v0.11.3 DEV", MODIO_DEBUGLEVEL_LOG);
 
   if (environment == MODIO_ENVIRONMENT_TEST)
     modio::MODIO_URL = "https://api.test.mod.io/";
   modio::GAME_ID = game_id;
   modio::API_KEY = api_key;
-  if (root_path)
-    modio::ROOT_PATH = root_path;
   
   modio::installDownloadedMods();
 
@@ -81,6 +91,13 @@ void modioInit(u32 environment, u32 game_id, char *api_key, char *root_path)
   modio::updateInstalledModsJson();
 
   modio::clearOldCache();
+
+  nlohmann::json authentication_json = modio::openJson(modio::getModIODirectory() + "authentication.json");
+  if (modio::hasKey(authentication_json, "user"))
+    modioInitUser(&modio::current_user, authentication_json["user"]);
+
+  if (modioIsLoggedIn())
+    modioGetAuthenticatedUser(NULL, &modio::onUpdateCurrentUser);
 
   modio::writeLogLine("SDK Initialized", MODIO_DEBUGLEVEL_LOG);
 }
@@ -112,6 +129,8 @@ void modioShutdown()
   clearSubscriptionCallbackParams();
   clearTagCallbackParams();
 
+  modioFreeUser(&modio::current_user);
+
   modio::writeLogLine("mod.io C interface finished shutting down", MODIO_DEBUGLEVEL_LOG);
 }
 
@@ -133,7 +152,7 @@ void modioSleep(u32 milliseconds)
 #endif
 }
 
-void compressFiles(char *root_directory, char *filenames[], u32 filenames_size, char *zip_path)
+void compressFiles(char const *root_directory, char const * const filenames[], u32 filenames_size, char const *zip_path)
 {
   std::vector<std::string> filenames_vector;
   for (u32 i = 0; i < filenames_size; i++)
